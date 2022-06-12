@@ -6,12 +6,14 @@ public class Spawner : MonoBehaviour
     [SerializeField] Item _itemPrefab;
     float _spawnDelay = 12f;
     float _nextSpawnTime;
+    float _initialSpawnTime;
 
     SkillTree _skillTree;
 
     private void Start()
     {
         _skillTree = FindObjectOfType<SkillTree>();
+        _initialSpawnTime = Time.time + 60;
     }
 
     void Update()
@@ -22,7 +24,10 @@ public class Spawner : MonoBehaviour
         }
     }
 
-    bool ReadyToSpawn() => Time.time >= _nextSpawnTime;
+    bool ReadyToSpawn()
+    {
+        return Time.time >= _nextSpawnTime && Time.time >= _initialSpawnTime;
+    }
 
     void Spawn()
     {

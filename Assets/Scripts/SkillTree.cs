@@ -8,7 +8,7 @@ public class SkillTree : MonoBehaviour
     public int SkillPoints = 0;
     public Skill[] Skills;
     public int Level = 1;
-    public int CountDown = 20;
+    public int CountDown = 22;
     Player _player;
     CanvasGroup _canvasGroup;
     HUD _hud;
