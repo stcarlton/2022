@@ -6,12 +6,14 @@ public class BlasterShot : MonoBehaviour
     public int ShotPower;
     public bool Crit;
     public bool Stagger;
-    public bool Ricochet;
-    public bool Amplify;
+    public int Ricochet;
+    public float Amplify;
     public float Incendiary;
     public float ArmorShred;
+    public float CQC;
+    public Transform Origination;
     
-    public void Launch(Vector3 direction, float speed, int shotPower, bool crit, bool stagger, bool ricochet, bool amplify, float incendiary, float armorShred)
+    public void Launch(Vector3 direction, float speed, int shotPower, bool crit, bool stagger, int ricochet, float amplify, float incendiary, float armorShred, float cqc, Transform origination)
     {
         Speed = speed;
         direction.Normalize();
@@ -23,20 +25,22 @@ public class BlasterShot : MonoBehaviour
         Amplify = amplify;
         Incendiary = incendiary;
         ArmorShred = armorShred;
+        CQC = cqc;
+        Origination = origination;
         GetComponent<Rigidbody>().velocity = direction * speed;
     }
 
     void OnCollisionEnter(Collision collision)
     {
         var zombie = collision.collider.GetComponent<Zombie>();
-        if (!Ricochet || zombie != null)
+        if (Ricochet <= 0 || zombie != null)
         {
             Destroy(gameObject);
         }
         else
         {
             GetComponent<Rigidbody>().velocity = Vector3.Reflect(transform.up, collision.contacts[0].normal) * Speed;
-            Ricochet = false;
+            Ricochet = Ricochet - 1;
         }
     }
 

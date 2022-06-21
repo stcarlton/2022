@@ -15,7 +15,7 @@ public class Zombie : MonoBehaviour
     protected const float LEVEL_MULTIPLIER_MEDIUM = 1.03f;
     protected const float LEVEL_MULTIPLIER_SLOW = 1.01f;
     protected const float INITIAL_ATTACK_RANGE = 1f;
-    protected const float INITIAL_HEALTH = 100;
+    protected const float INITIAL_HEALTH = 150;
     protected const float INITIAL_POWER = 25;
 
     protected float _levelMultiplier;
@@ -83,16 +83,18 @@ public class Zombie : MonoBehaviour
         var blasterShot = collision.collider.GetComponent<BlasterShot>();
         if(blasterShot != null)
         {
+            bool cqc = Vector3.Distance(transform.position, blasterShot.Origination.position) <= 5;
+
             if (blasterShot.Incendiary > 0)
             {
                 incDotDamage((int)(blasterShot.ShotPower * blasterShot.Incendiary));
             }
-            int armor = (int)((1 - blasterShot.ArmorShred) * _armor);
+            int armor = (int)((1 - blasterShot.ArmorShred) * _armor * (1.0 + (cqc ? blasterShot.CQC : 0.0)));
             float modification = (float)(1.0f / Math.Pow(2, (float)armor / 100f));
-            float modifiedPower = blasterShot.ShotPower * (float)Math.Pow(1.01f,_amplify) * modification;
+            float modifiedPower = blasterShot.ShotPower * (float)Math.Pow((1 + blasterShot.Amplify),_amplify) * modification;
             LastCrit = blasterShot.Crit;
             AdjustHealth((int)modifiedPower, blasterShot.Stagger);
-            if (blasterShot.Amplify)
+            if (blasterShot.Amplify > 0)
             {
                 _amplify++;
             }

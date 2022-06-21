@@ -40,7 +40,7 @@ public class SkillButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     public void OnPointerEnter(PointerEventData p)
     {
         _text.text = ThisSkill.Description;
-        _text.fontSize = 14;
+        _text.fontSize = 18;
     }
     public void OnPointerExit(PointerEventData p)
     {

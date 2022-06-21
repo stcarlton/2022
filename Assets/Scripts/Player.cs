@@ -12,36 +12,32 @@ public class Player : MonoBehaviour
     HealthBar _healthBar;
     GameOverUI _gameOverUI;
 
-    float _fireRate = 10f;
-    float _dodgeChance = 0f;
-    int _shotPower = 20;
-    int _baseShotPower = 20;
     float _critRate = 0.2f;
-    public int _maxHealth = 200;
-    int _spread = 0;
-
-    float _velocity = 10f;
     float _movementSpeed = 2f;
     float _critMult = 2f;
-    int _armor = 50;
-    float _armorShred = 0f;
-
+    float _fireRate = 10f;
+    float _amplify = 0f;
+    float _velocity = 10f;
     public float TimeDilation = 0f;
+    public int MaxHealth = 200;
     float _damageCurve = 0f;
+    int _armor = 50;
+    float _regen = 0f;
+    float _dodgeChance = 0f;
+    float _lifeLine = 0f;
     float _vampirism = 0f;
+    int _shotPower = 20;
+    float _armorShred = 0f;
+    float _cqc = 0f;
     float _incendiary = 0f;
-
-    bool _ricochet = false;
+    int _spread = 0;
+    int _ricochet = 0;
     bool _stagger = false;
-    bool _amplify = false;
-
-    bool _regen = false;
-    bool _lifeLine = false;
-
     bool _goldenGod = false;
 
     public static event Action<Player> Hit;
     public int LastHitTaken;
+    int _baseShotPower = 20;
     int _health;
     float _nextFireTime;
     float _nextDotTime;
@@ -52,13 +48,6 @@ public class Player : MonoBehaviour
     int[] _dot;
     int _dotPointer;
     bool _dead;
-    float _regenPerc
-    {
-        get
-        {
-            return (float)(_regen ? 0.2 : 0.1);
-        }
-    }
 
     void Awake()
     {
@@ -68,7 +57,7 @@ public class Player : MonoBehaviour
         _gameOverUI = FindObjectOfType<GameOverUI>();
         _dot = new int[5];
         _fireTrigger = false;
-        _health = _maxHealth;
+        _health = MaxHealth;
         _dead = false;
     }
 
@@ -139,8 +128,9 @@ public class Player : MonoBehaviour
         BlasterShot shot = Instantiate(_blasterShotPrefab, _firePoint.position, transform.rotation);
         System.Random r = new System.Random();
         bool crit = r.NextDouble() <= _critRate;
+
         int shotPower = (int)(crit ? _shotPower * _critMult : _shotPower);
-        shot.Launch(transform.forward, _velocity, shotPower, crit, _stagger, _ricochet, _amplify, _incendiary, _armorShred);
+        shot.Launch(transform.forward, _velocity, shotPower, crit, _stagger, _ricochet, _amplify, _incendiary, _armorShred, _cqc, this.transform);
 
         for(int i = 2; i < _spread+2; i++)
         {
@@ -149,15 +139,7 @@ public class Player : MonoBehaviour
                 _blasterShotPrefab,
                 _firePoint.position,
                 Quaternion.Euler(Quaternion.Euler(0, k, 0) * transform.forward));
-            shot.Launch(Quaternion.Euler(0, k, 0)*transform.forward, _velocity, shotPower/2, crit, _stagger, _ricochet, _amplify, _incendiary, _armorShred);
-            if(i == 6)
-            {
-                shot = Instantiate(
-                    _blasterShotPrefab,
-                    _firePoint.position,
-                    Quaternion.Euler(Quaternion.Euler(0, -k, 0) * transform.forward));
-                shot.Launch(Quaternion.Euler(0, -k, 0) * transform.forward, _velocity, shotPower/2, crit, _stagger, _ricochet, _amplify, _incendiary, _armorShred);
-            }
+            shot.Launch(Quaternion.Euler(0, k, 0)*transform.forward, _velocity, shotPower/(_spread==3 ? 1 : 2), crit, _stagger, _ricochet, _amplify, _incendiary, _armorShred, _cqc, this.transform);
         }
     }
 
@@ -173,7 +155,7 @@ public class Player : MonoBehaviour
                 modifiedPower -= dotDamage;
                 incDotDamage(dotDamage);
                 AdjustHealth(modifiedPower);
-                _healthRegenTime = Time.time + (_regen ? 0f : 5f);
+                _healthRegenTime = Time.time + (_regen > 0 ? 0f : 5f);
             }
             else
             {
@@ -185,9 +167,9 @@ public class Player : MonoBehaviour
     void AdvanceDot()
     {
         _nextDotTime = Time.time + 1f;
-        int regen = (int)(Time.time < _healthRegenTime ? 0 : _maxHealth * _regenPerc);
+        int regen = (int)(Time.time < _healthRegenTime ? 0 : MaxHealth * (_regen + 0.1f));
         int dot = _dot[_dotPointer] + regen;
-        dot = dot > (_maxHealth - _health) ? (_maxHealth - _health) : dot;
+        dot = dot > (MaxHealth - _health) ? (MaxHealth - _health) : dot;
         if (dot != 0)
         {
             AdjustHealth(dot);
@@ -206,9 +188,9 @@ public class Player : MonoBehaviour
     {
         if (_health < 0)
         {
-            if(_lifeLine && Time.time >= _lifelineCooldown)
+            if(_lifeLine > 0 && Time.time >= _lifelineCooldown)
             {
-                _lifelineCooldown = Time.time + 120f;
+                _lifelineCooldown = Time.time + 120f - _lifeLine;
                 _lifelineTime = Time.time + 5f;
                 _health = 1;
             }
@@ -225,9 +207,9 @@ public class Player : MonoBehaviour
     }
     void CapHealth()
     {
-        if (_health > _maxHealth)
+        if (_health > MaxHealth)
         {
-            _health = _maxHealth;
+            _health = MaxHealth;
         }
     }
     void incDotDamage(int num)
@@ -243,16 +225,16 @@ public class Player : MonoBehaviour
     }
     public void Vamp(int power)
     {
-        if(_health < _maxHealth && _vampirism > 0f)
+        if(_health < MaxHealth && _vampirism > 0f)
         {
             power = (int)(power * _vampirism) + 1;
-            power = power > (_maxHealth - _health) ? (_maxHealth - _health) : power;
+            power = power > (MaxHealth - _health) ? (MaxHealth - _health) : power;
             AdjustHealth(power);
         }
     }
     public void AdjustHealth(int power)
     {
-        if(power < 0 && !_lifeLine || Time.time > _lifelineTime)
+        if(power < 0 && (_lifeLine == 0 || Time.time > _lifelineTime))
         {
             LastHitTaken = power;
             Hit?.Invoke(this);
@@ -266,37 +248,36 @@ public class Player : MonoBehaviour
             _health += power;
             CapHealth();
         }
-        _healthBar.SetHealthBar((float)_health/(float)_maxHealth);
+        _healthBar.SetHealthBar((float)_health/(float)MaxHealth);
     }
     public void LevelUp()
     {
-        _goldenGod = _skillTree.Skills[20].CurrentRank == 1;
+        _goldenGod = _skillTree.Skills[21].CurrentRank == 1;
 
         float goldenGodMultiplier = _goldenGod ? (float)Math.Pow(1.01f,_skillTree.Level - 60) : 1f;
-        
-        _fireRate = 10f + _skillTree.Skills[0].CurrentRank * 2f * goldenGodMultiplier;
-        _dodgeChance = 0f + _skillTree.Skills[1].CurrentRank * 0.1f;
-        _critRate = 0f + _skillTree.Skills[2].CurrentRank * 0.1f;
-        _shotPower = (int)(_baseShotPower + _skillTree.Skills[3].CurrentRank * 4f * goldenGodMultiplier);
-        _maxHealth = (int)(200 + _skillTree.Skills[4].CurrentRank * 40f * goldenGodMultiplier);
-        _spread = 0 + _skillTree.Skills[5].CurrentRank;
 
-        _velocity = 10f + _skillTree.Skills[6].CurrentRank * 2f * goldenGodMultiplier;
-        _movementSpeed = 2f + _skillTree.Skills[7].CurrentRank * 0.4f;
-        _critMult = 2f + _skillTree.Skills[8].CurrentRank * 0.4f * goldenGodMultiplier;
+        _critRate = 0f + _skillTree.Skills[0].CurrentRank * 0.1f;
+        _movementSpeed = 2f + _skillTree.Skills[1].CurrentRank * 0.4f;
+        _critMult = 2f + _skillTree.Skills[2].CurrentRank * 0.4f * goldenGodMultiplier;
+        _fireRate = 10f + _skillTree.Skills[3].CurrentRank * 2f * goldenGodMultiplier;
+        _amplify = _skillTree.Skills[4].CurrentRank * 0.01f;
+        _velocity = 10f + _skillTree.Skills[5].CurrentRank * 4f * goldenGodMultiplier;
+        TimeDilation = 0f + _skillTree.Skills[6].CurrentRank * 0.5f;
+
+        MaxHealth = (int)(200 + _skillTree.Skills[7].CurrentRank * 40f * goldenGodMultiplier);
+        _damageCurve = 0f + _skillTree.Skills[8].CurrentRank * 0.1f;
         _armor = (int)(50 + _skillTree.Skills[9].CurrentRank * 10f * goldenGodMultiplier);
-        _armorShred = 0f + _skillTree.Skills[10].CurrentRank * 0.1f;
+        _regen = _skillTree.Skills[10].CurrentRank * 0.05f;
+        _dodgeChance = 0f + _skillTree.Skills[11].CurrentRank * 0.2f;
+        _lifeLine = _skillTree.Skills[12].CurrentRank * 30f;
+        _vampirism = 0f + _skillTree.Skills[13].CurrentRank * 0.1f;
 
-        TimeDilation = 0f + _skillTree.Skills[11].CurrentRank * 0.1f;
-        _damageCurve = 0f + _skillTree.Skills[12].CurrentRank * 0.1f;
-        _vampirism = 0f + _skillTree.Skills[13].CurrentRank * 0.05f;
-        _incendiary = 0f + _skillTree.Skills[14].CurrentRank * 0.2f;
-
-        _amplify = _skillTree.Skills[15].CurrentRank == 1;
-        _stagger = _skillTree.Skills[16].CurrentRank == 1;
-        _ricochet = _skillTree.Skills[17].CurrentRank == 1;
-
-        _regen = _skillTree.Skills[18].CurrentRank == 1;
-        _lifeLine = _skillTree.Skills[19].CurrentRank == 1;
+        _shotPower = (int)(_baseShotPower + _skillTree.Skills[14].CurrentRank * 4f * goldenGodMultiplier);
+        _armorShred = 0f + _skillTree.Skills[15].CurrentRank * 0.1f;
+        _cqc = _skillTree.Skills[6].CurrentRank * 0.1f;
+        _incendiary = 0f + _skillTree.Skills[17].CurrentRank * 0.2f; 
+        _spread = 0 + _skillTree.Skills[18].CurrentRank;
+        _ricochet = _skillTree.Skills[19].CurrentRank;
+        _stagger = _skillTree.Skills[20].CurrentRank == 1;
     }
 }

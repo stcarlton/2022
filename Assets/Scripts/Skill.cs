@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 [Serializable]
 public class Skill
@@ -9,8 +10,9 @@ public class Skill
     public string Description;
     public int CurrentRank;
     public int MaxRank;
-    public Skill Left;
-    public Skill Right;
+    
+    private List<Skill> _dependencies;
+    
     public string Display
     {
         get
@@ -22,15 +24,19 @@ public class Skill
     {
         get
         {
-            if(Left != null && Right != null)
+            bool tempLock = true;
+            if(_dependencies == null)
             {
-                return Left.Maxed && Right.Maxed;
+                Debug.Log("No dependencies");
             }
             else
             {
-                return true;
+                foreach (Skill s in _dependencies)
+                {
+                    tempLock = tempLock && s.Maxed;
+                }
             }
-            
+            return tempLock;
         }
     }
     public bool Maxed
@@ -41,15 +47,14 @@ public class Skill
         }
     }
 
-    public Skill(int id, string name, string description, int maxRank, Skill left, Skill right)
+    public Skill(int id, string name, string description, int maxRank, List<Skill> dependencies)
     {
         Id = id;
         Name = name;
         Description = description;
         CurrentRank = 0;
         MaxRank = maxRank;
-        Left = left;
-        Right = right;
+        _dependencies = dependencies;
     }
     public void IncreaseRank()
     {
