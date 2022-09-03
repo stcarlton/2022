@@ -1234,7 +1234,7 @@ Transform:
   m_GameObject: {fileID: 4689484200261526277}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -6.873916, y: 0.15, z: -10.106314}
-  m_LocalScale: {x: 0.47, y: 0.47, z: 0.47}
+  m_LocalScale: {x: 0.46, y: 0.46, z: 0.46}
   m_Children:
   - {fileID: 8358728294257366126}
   - {fileID: 6881852659807455782}
@@ -1330,6 +1330,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b4acea87717b5684d9486a16215d3a80, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _bloodPrefabs:
+  - {fileID: 100000, guid: 358b75ea5451cf143ab19029a189097d, type: 3}
+  - {fileID: 100000, guid: cfc7596704bbd7f489156fcd4c05c7e9, type: 3}
+  - {fileID: 100000, guid: 18a11fd6df8ceb449b8785301026d639, type: 3}
+  - {fileID: 100000, guid: 6fe4d785744af2c40a2157f5b209d97f, type: 3}
+  - {fileID: 100000, guid: aec54d7a991d7b644b145d550a4b7831, type: 3}
+  - {fileID: 100000, guid: 14987c031123b98408a165a8bf1288d4, type: 3}
+  - {fileID: 100000, guid: 43dd1ba2a5dde844eb01240da13ab96b, type: 3}
   LastHitTaken: 0
   LastCrit: 0
   Burning: 0
