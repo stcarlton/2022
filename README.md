@@ -26,7 +26,9 @@ https://i.simmer.io/@sethtcarlton/2022
 ## HUD
 ![image](https://user-images.githubusercontent.com/58635162/193425964-ff53712b-7e81-4cf0-ab06-281d69550afb.png)
 * Top Left: Health Bar
-* Top Right: Enemies left in level / Level
+* Top Right
+    * Yellow Number: Remaining enemies
+    * White Number: Level
 
 ## Additional Information
 * Kill zombies until the next level is reached.
